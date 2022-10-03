@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser')
 const app = express();
 
 // Basic Configuration
@@ -15,9 +16,24 @@ app.get('/', function(req, res) {
 });
 
 // Your first API endpoint
-app.get('/api/hello', function(req, res) {
-  res.json({ greeting: 'hello API' });
+app.use(bodyParser.urlencoded({extended: false}))
+let counter = 0
+let addresses = {}
+
+app.post('/api/shorturl/', function(req, res) {
+
+  if (/(\w+:\/\/)(\w+\.)?(\w+\.\w+)/.test(req.body.url)) {
+    counter++
+    addresses[counter] = req.body.url
+    res.json({ original_url: req.body.url, short_url: counter });
+  } else {
+    res.json({error: 'invalid url'})  
+  }
 });
+
+app.get('/api/shorturl/:id', function(req, res) {
+  res.redirect(addresses[req.params.id])
+})
 
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
